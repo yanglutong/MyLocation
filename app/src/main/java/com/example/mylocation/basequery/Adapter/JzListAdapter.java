@@ -160,8 +160,8 @@ public class JzListAdapter extends RecyclerView.Adapter<JzListAdapter.MyViewHold
             public void onClick(View view) {
                 new CircleDialog.Builder((FragmentActivity) mcontext)
                         .setTitle("")
-                        .setWidth(0.5f)
-                        .setMaxHeight(0.5f)
+                        .setWidth(0.7f)
+                        .setMaxHeight(0.7f)
                         .setText("确定要删除基站吗")
                         .setTitleColor(Color.parseColor("#00acff"))
                         .setNegative("确定", new myclic(3, list.get(i).getId()))

@@ -1146,8 +1146,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                             String dele = extraInfo.getString("id");
                             new CircleDialog.Builder()
                                     .setTitle("")
-                                    .setWidth(0.5f)
-                                    .setMaxHeight(0.5f)
+                                    .setWidth(0.7f)
+                                    .setMaxHeight(0.7f)
                                     .setText("确定要删除基站吗")
                                     .setTitleColor(Color.parseColor("#00acff"))
                                     .setNegative("确定", new Positiv(3, dele))
@@ -3151,8 +3151,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                 if(isGj){
                     new CircleDialog.Builder()
 //                            .setTitle("")
-                            .setWidth(0.5f)
-                            .setMaxHeight(0.5f)
+                            .setWidth(0.7f)
+                            .setMaxHeight(0.7f)
                             .setText("确定要关闭轨迹功能吗?")
                             .setTitleColor(Color.parseColor("#00acff"))
                             .setNegative("确定", new Positiv(13))
@@ -4415,7 +4415,7 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                 final GuijiViewBeanjizhan guijiViewBeanjizhan = dbManagerJZ.forid(Integer.parseInt(id));
                 Log.d(TAG, "aaonActivityResult: " + guijiViewBeanjizhan);
 
-                View view = View.inflate(mContext, R.layout.activity_map_info2, null);
+                View view = View.inflate(mContext, R.layout.activity_map_info, null);
 
                 TextView tv_title = view.findViewById(R.id.tv_title);
                 String str = "";
@@ -4536,8 +4536,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                                 String dele = guijiViewBeanjizhan.getId() + "";
                                 new CircleDialog.Builder()
                                         .setTitle("")
-                                        .setWidth(0.5f)
-                                        .setMaxHeight(0.5f)
+                                        .setWidth(0.7f)
+                                        .setMaxHeight(0.7f)
                                         .setText("确定要删除基站吗")
                                         .setTitleColor(Color.parseColor("#00acff"))
                                         .setNegative("确定", new Positiv(3, dele))
