@@ -194,7 +194,8 @@ public class CellBean {
     @Override
     public String toString() {
         return "CellBean{" +
-                "plmn='" + plmn + '\'' +
+                "id=" + id +
+                ", plmn='" + plmn + '\'' +
                 ", tac='" + tac + '\'' +
                 ", eci='" + eci + '\'' +
                 ", pci='" + pci + '\'' +
@@ -205,7 +206,9 @@ public class CellBean {
                 ", rsrq='" + rsrq + '\'' +
                 ", sinr='" + sinr + '\'' +
                 ", addEarfcn='" + addEarfcn + '\'' +
+                ", i=" + i +
                 ", isCellLiShi=" + isCellLiShi +
+                ", lengthMax=" + lengthMax +
                 '}';
     }
 }

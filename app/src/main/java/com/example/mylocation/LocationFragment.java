@@ -6,9 +6,11 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,7 +22,9 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
@@ -29,6 +33,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -47,6 +52,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -235,7 +241,7 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
     private DataBean dataBean;
     //阿里的基站查询
     private DataAliBean dataAliBean;
-    List<LatLng> points = new ArrayList<LatLng>();//绘制线的list
+    List<LatLng> points = new ArrayList<>();//绘制线的list
     private LatLng ll;
     private double distance2 = 0;
     private double distance = 0;
@@ -279,6 +285,7 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
     SerrnTaAdapter serrnAdapters;
     UiSettings uiSettings;
     private Handler handler = new Handler() {
+        @SuppressLint("HandlerLeak")
         @TargetApi(Build.VERSION_CODES.N)
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
@@ -307,15 +314,28 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                         if (null == trackPoints) {
                             return;
                         }
-                        trackPoints.add(new LatLng(mylag2.latitude, mylag2.longitude));
-                        mapUtil.drawHistoryTrack(trackPoints, false, mCurrentDirection);//时时动态的画出运动轨迹
-                    }else{
-                            if(trackPoints!=null&&trackPoints.size()>0){
+                        Log.e("TAGhandleMessage", "handleMessage:");
+                        DBManagerGuijiView dbManagerGuijiView=null;
+                        try {
+                            dbManagerGuijiView = new DBManagerGuijiView(mContext);
+                            List<GuijiViewBean> list = dbManagerGuijiView.guijiViewBeans();
+                            if(list.size()>0){
                                 trackPoints.clear();
-                                if(mapUtil.baiduMap!=null){
-                                    mapUtil.baiduMap.clear();
+                                for (int i = 0; i < list.size(); i++) {
+                                    trackPoints.add(new LatLng(list.get(i).getLat(),list.get(i).getLon()));
                                 }
+                                mapUtil.drawHistoryTrack(trackPoints, false, mCurrentDirection);//时时动态的画出运动轨迹
                             }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }else{
+                        if(trackPoints!=null&&trackPoints.size()>0){
+                            Log.e("FFFFFF", "handleMessage:fffffffffffffsssf " );
+                            trackPoints.clear();
+                            mBaiduMap.clear();
+                            initdatas2();
+                        }
                     }
 
 
@@ -997,13 +1017,16 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
             View view = View.inflate(mContext, R.layout.activity_map_info, null);
             TextView tv_title = view.findViewById(R.id.tv_title);
             String str = "";
-            if (extraInfo.getString("mnc").equals("0")) {
+//            if(null==extraInfo.getString("mnc")){
+//                return;
+//            }
+            if (extraInfo.getString("mnc")!=null&&extraInfo.getString("mnc").equals("0")) {
                 str = "移动";
-            } else if (extraInfo.getString("mnc").equals("1")) {
+            } else if (extraInfo.getString("mnc")!=null&&extraInfo.getString("mnc").equals("1")) {
                 str = "联通";
-            } else if (extraInfo.getString("mnc").equals("11")) {
+            } else if (extraInfo.getString("mnc")!=null&&extraInfo.getString("mnc").equals("11")) {
                 str = "电信";
-            } else if (TextUtils.isEmpty(extraInfo.getString("mnc"))) {//如果是cdma显示 sid数据
+            } else if (extraInfo.getString("mnc")!=null&&TextUtils.isEmpty(extraInfo.getString("mnc"))) {//如果是cdma显示 sid数据
                 str = "";
                 TextView tv_sid = view.findViewById(R.id.tv_sid);
                 tv_sid.setText(extraInfo.getString("sid"));
@@ -1077,6 +1100,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                     Log.d(TAG, "extraInfoidonClick: " + extraInfo.getString("id"));
 
                     new CircleDialog.Builder()
+                            .setWidth(0.5f)
+                            .setMaxHeight(0.5f)
                             .setTitle("")
                             .setText("确定要设为报警基站吗")
                             .setTitleColor(Color.parseColor("#00acff"))
@@ -1121,6 +1146,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                             String dele = extraInfo.getString("id");
                             new CircleDialog.Builder()
                                     .setTitle("")
+                                    .setWidth(0.5f)
+                                    .setMaxHeight(0.5f)
                                     .setText("确定要删除基站吗")
                                     .setTitleColor(Color.parseColor("#00acff"))
                                     .setNegative("确定", new Positiv(3, dele))
@@ -1512,6 +1539,12 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                 Log.d(TAG, "onClick: 没有查询的基站位置所以不用画基站");
             }
             if (t == 13) {//关闭轨迹
+                try {
+                    DBManagerGuijiView guijiView = new DBManagerGuijiView(mContext);
+                    guijiView.deleteall();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 ib_gj.setBackground(getResources().getDrawable(R.mipmap.gj));
                 isGj=false;
             }
@@ -1644,7 +1677,9 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
 
     //数据库基站数据  //基站展示
     private void DataAll(List<GuijiViewBeanjizhan> resultBeans) {
-
+        for (GuijiViewBeanjizhan resultBean : resultBeans) {
+            Log.e("DataAll", "DataeAllffffffffff: "+resultBean.getTa());
+        }
         mBaiduMap.clear();
         for (int i = 0; i < resultBeans.size(); i++) {
             Bundle bundle = new Bundle();
@@ -2197,7 +2232,7 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
         }
     }
 
-
+    private boolean isJuli=true;//距离长度小于十米不添加
     /**
      * 定位SDK监听函数
      */
@@ -2210,11 +2245,69 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
             if (location == null || mMapView == null) {
                 return;
             }
+
+            List<GuijiViewBean> list=null;
+            DBManagerGuijiView guijiView=null;
+            if(isGj){
+                try {
+                    guijiView= new DBManagerGuijiView(mContext);
+                    list= guijiView.guijiViewBeans();
+                    if(list.size()>0){
+                        for (GuijiViewBean guijiViewBean : list) {
+                            Log.e("onReceive", "onReceiveLocation: "+guijiViewBean);
+                        }
+                    }else{
+                        GuijiViewBean bean = new GuijiViewBean();
+                        bean.setLat(location.getLatitude());
+                        bean.setLon(location.getLongitude());
+                        guijiView.insertStudent(bean);
+                    }
+                    if (list.size() > 0 && list != null) {
+                        GuijiViewBean guijiViewBean = list.get(list.size() - 1);
+                        double lat = guijiViewBean.getLat();
+                        double lon = guijiViewBean.getLon();
+                        LatLng latLngceliang = new LatLng(lat, lon);
+                        double distance = DistanceUtil.getDistance(mylag2, latLngceliang);//当前和上一个记录点的位置
+                        Double getguis = 0.0;
+                        if (!TextUtils.isEmpty(ACacheUtil.getguitime())) {
+                            String getguitime = ACacheUtil.getguitime();
+                            getguis = Double.parseDouble(getguitime);
+                        } else {
+                            getguis = 10.0;
+                        }
+                        if (distance > getguis) { //大于设置的 轨迹间隔 添加
+//                    ToastUtils.showShort("大于"+list.size());
+                            Log.d("onReceive", "ASonReceiveLocation:大于");
+                            GuijiViewBean guijiViewBeanS = new GuijiViewBean();
+                            guijiViewBeanS.setLat(location.getLatitude());
+                            guijiViewBeanS.setLon(location.getLongitude());
+                            try {
+                                guijiView.insertStudent(guijiViewBeanS);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+//                    ToastUtils.showShort("小于");
+                            Log.d("onReceive", "ASonReceiveLocation:小于"+list.size());
+                        }
+                    }
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+
+            //已经有最后一个值了，将最后一个值和每次的新值进行比较，大于就存
+            //第一次的不管啥值先绘制
             mylag2=new LatLng(location.getLatitude(),location.getLongitude());
             mylag=new LatLng(location.getLatitude(),location.getLongitude());
 
 
-            Log.d(TAG, "onReceiveLocation: " + mylag2);
+
+            //如果一个值就画一个基站，如果两个值就是最大值基站和最小值基站 还有平均值基站
+
             mCurrentLat = location.getLatitude();
             mCurrentLon = location.getLongitude();
             mCurrentAccracy = location.getRadius();
@@ -2798,10 +2891,14 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
 
 
     //测量
+    @SuppressLint("Range")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void setmapJuli() {
         if(isGj){
-            MyToast.showToast("请先停止轨迹");
+            ToastUtils.setGravity(Gravity.CENTER, 0, 0);
+            ToastUtils.setBgColor(Color.BLACK);
+            ToastUtils.setMsgColor(Color.WHITE);
+            ToastUtils.showShort("请先停止轨迹");
             return;
         }
         if (jingbaoflag == false) {
@@ -2816,7 +2913,9 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                 ib_cl.setBackground(getResources().getDrawable(R.mipmap.measuretrue));
             } else if (juliFlage == true) {
                 new CircleDialog.Builder()
-                        .setTitle("")
+//                        .setTitle(null)
+                        .setWidth(0.7f)
+                        .setMaxHeight(0.7f)
                         .setText("确定要关闭测量功能吗?")
                         .setTitleColor(Color.parseColor("#00acff"))
                         .setNegative("确定", new Positiv(1))
@@ -2831,6 +2930,77 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
         } else {
             MyToast.showToast("请先关闭报警");
         }
+    }
+
+    private void setDialog() {
+
+
+    }
+
+    /**
+     * 默认的弹出窗口
+     * @param view
+     */
+    public void alertDialog(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("弹出窗");
+        builder.setMessage("提示信息！");
+        builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                System.out.println("确认执行函数");
+            }
+        }).setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    /**
+     * 自定义样式的弹出窗
+     * @param view
+     */
+    public void alertDialog2(View view) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        // 自定义 title样式
+        TextView title = new TextView(mContext);
+        title.setText("自定义弹出窗");
+        title.setTextSize(24);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0,20,0,20);
+        builder.setCustomTitle(title);
+        // 中间的信息以一个view的形式设置进去
+        TextView msg = new TextView(mContext);
+        msg.setText("自定义弹出提示信息");
+        msg.setTextSize(24);
+        msg.setGravity(Gravity.CENTER);
+        msg.setPadding(20, 40, 20, 40);
+        builder.setView(msg);
+
+        builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                System.out.println("确认执行函数");
+            }
+        }).setNegativeButton("取消", null);
+        // 调用 show()方法后得到 dialog对象
+        AlertDialog dialog = builder.show();
+        final Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        final Button negativeButton=dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        LinearLayout.LayoutParams positiveParams =(LinearLayout.LayoutParams)positiveButton.getLayoutParams();
+        positiveParams.gravity = Gravity.CENTER;
+        positiveParams.setMargins(10,10,10,10);
+        positiveParams.width = 0;
+        // 安卓下面有三个位置的按钮，默认权重为 1,设置成 500或更大才能让两个按钮看起来均分
+        positiveParams.weight = 500;
+        LinearLayout.LayoutParams negativeParams =(LinearLayout.LayoutParams)negativeButton.getLayoutParams();
+        negativeParams.gravity = Gravity.CENTER;
+        negativeParams.setMargins(10,10,10,10);
+        negativeParams.width = 0;
+        negativeParams.weight = 500;
+        positiveButton.setLayoutParams(positiveParams);
+        negativeButton.setLayoutParams(negativeParams);
+        positiveButton.setBackgroundColor(Color.parseColor("#FF733E"));
+        positiveButton.setTextColor(Color.parseColor("#FFFFFF"));
+        negativeButton.setBackgroundColor(Color.parseColor("#DDDDDD"));
     }
 
 
@@ -2972,12 +3142,17 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                 break;
             case R.id.ll_gj://鹰眼轨迹
                 if(juliFlage){
-                    MyToast.showToast("请先关闭测量");
+                    ToastUtils.setGravity(Gravity.CENTER, 0, 0);
+                    ToastUtils.setBgColor(Color.BLACK);
+                    ToastUtils.setMsgColor(Color.WHITE);
+                    ToastUtils.showShort("请先关闭测量");
                     return;
                 }
                 if(isGj){
                     new CircleDialog.Builder()
-                            .setTitle("")
+//                            .setTitle("")
+                            .setWidth(0.5f)
+                            .setMaxHeight(0.5f)
                             .setText("确定要关闭轨迹功能吗?")
                             .setTitleColor(Color.parseColor("#00acff"))
                             .setNegative("确定", new Positiv(13))
@@ -3045,7 +3220,6 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
 //                    break;
 //                }
                 if (list.size() > 0) {
-
                 } else {
                     list.add(0.0);
 //                    MyToast.showToast("请添加至少一个TA值");
@@ -3380,9 +3554,9 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
 //                }
 
 
-                if(list.size()>0){//TA值默认添加的一条清除
-                    list.clear();
-                }
+//                if(list.size()>0){//TA值默认添加的一条清除
+//                    list.clear();
+//                }
                 list.add(Double.parseDouble(et_ta.getText().toString()));
 //                mAdapter.notifyDataSetChanged();
                 et_ta.setText("");
@@ -4319,6 +4493,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
 //                    aaaaa
                         new CircleDialog.Builder()
                                 .setTitle("")
+                                .setWidth(0.5f)
+                                .setMaxHeight(0.5f)
                                 .setText("确定要设为报警基站吗")
                                 .setTitleColor(Color.parseColor("#00acff"))
                                 .setNegative("确定", new Positiv(4, extraInfo))
@@ -4360,6 +4536,8 @@ public class LocationFragment extends Fragment implements View.OnClickListener, 
                                 String dele = guijiViewBeanjizhan.getId() + "";
                                 new CircleDialog.Builder()
                                         .setTitle("")
+                                        .setWidth(0.5f)
+                                        .setMaxHeight(0.5f)
                                         .setText("确定要删除基站吗")
                                         .setTitleColor(Color.parseColor("#00acff"))
                                         .setNegative("确定", new Positiv(3, dele))

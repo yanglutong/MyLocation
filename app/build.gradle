@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 30
+//  key  smmap123456
 //    buildToolsVersion "31.0.0"
 //password sm12345678  别名：yang
     defaultConfig {

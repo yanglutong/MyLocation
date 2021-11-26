@@ -44,7 +44,7 @@ public class GjActivity extends AppCompatActivity {
             // 开启服务回调
             @Override
             public void onStartTraceCallback(int status, String message) {
-                Log.i("杨路通", "开启服务回调:   status: "+status+"------message"+message);
+                Log.i("杨路通", "开启服务回调:   status: "+status+"----      --message"+message);
             }
             // 停止服务回调
             @Override

@@ -16,9 +16,8 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.gij.fragment.DeviceSettingFragment;
-import com.example.gij.fragment.GijFragment1;
-import com.example.gij.fragment.GijFragment2;
+import com.example.gij.fragment.GijFragments;
+import com.example.gij.fragment.GijFragments2;
 import com.example.gij.viewpager.JigPagerAdapter;
 import com.example.mylocation.utils.TitleBar;
 
@@ -85,9 +84,8 @@ public class HomeGijFragment extends Fragment implements View.OnClickListener {
 
     private void setDataVpAndButton() {
         //创建Fragment
-        fragmentArrayList.add(new GijFragment1());
-        fragmentArrayList.add(new GijFragment2());
-        fragmentArrayList.add(new DeviceSettingFragment());
+        fragmentArrayList.add(new GijFragments());
+        fragmentArrayList.add(new GijFragments2());
         vp.setAdapter(new JigPagerAdapter(getChildFragmentManager(),fragmentArrayList));
         //默认卡槽1选中状态
         iv_scrollbar2.setVisibility(View.GONE);

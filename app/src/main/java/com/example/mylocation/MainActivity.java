@@ -37,22 +37,15 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.vp);
         final RadioButton bt1 = findViewById(R.id.bt1);
         final RadioButton bt2 = findViewById(R.id.bt2);
-        bt1.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View view) {
-                viewPager.setCurrentItem(0);
-                bt1.setTextColor(getResources().getColor(R.color.color_3853e8 ));
-                bt2.setTextColor(getResources().getColor(R.color.black ));
-            }
+        bt1.setOnClickListener(view -> {
+            viewPager.setCurrentItem(0);
+            bt1.setTextColor(getResources().getColor(R.color.color_3853e8 ));
+            bt2.setTextColor(getResources().getColor(R.color.black ));
         });
-        bt2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                viewPager.setCurrentItem(1);
-                bt1.setTextColor(getResources().getColor(R.color.black ));
-                bt2.setTextColor(getResources().getColor(R.color.color_3853e8 ));
-            }
+        bt2.setOnClickListener(view -> {
+            viewPager.setCurrentItem(1);
+            bt1.setTextColor(getResources().getColor(R.color.black ));
+            bt2.setTextColor(getResources().getColor(R.color.color_3853e8 ));
         });
         final ArrayList<Fragment> fragments = new ArrayList<>();
         fragments.add(new LocationFragment());

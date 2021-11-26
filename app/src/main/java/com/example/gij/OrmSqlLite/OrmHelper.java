@@ -8,6 +8,7 @@ import com.example.gij.OrmSqlLite.Bean.CellBean;
 import com.example.gij.OrmSqlLite.Bean.CellBeanGSM;
 import com.example.gij.OrmSqlLite.Bean.CellBeanNr;
 import com.example.gij.OrmSqlLite.Bean.DevicePdBean;
+import com.example.gij.OrmSqlLite.Bean.LiShiBean;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -48,6 +49,7 @@ public class OrmHelper extends OrmLiteSqliteOpenHelper {
                 TableUtils.createTable(connectionSource, CellBeanNr.class);//小区工模的数据类
                 TableUtils.createTable(connectionSource, CellBeanGSM.class);//小区工模的数据类
                 TableUtils.createTable(connectionSource, DevicePdBean.class);//设备的数据类
+                TableUtils.createTable(connectionSource, LiShiBean.class);//历史记录
 //
 
 

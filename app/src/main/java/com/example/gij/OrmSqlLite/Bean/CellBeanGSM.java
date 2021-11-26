@@ -101,6 +101,8 @@ public class CellBeanGSM {
                 ", addArfcn='" + addArfcn + '\'' +
                 ", GSM='" + GSM + '\'' +
                 ", isCellShow=" + isCellShow +
+                ", i=" + i +
+                ", lengthMax=" + lengthMax +
                 '}';
     }
 

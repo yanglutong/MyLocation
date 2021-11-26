@@ -35,7 +35,7 @@ public class CellBeanNr {
     private String band;
     @DatabaseField
     private String addArfcn;//添加频点
-     @DatabaseField
+    @DatabaseField
     private int  i;//添加频点
     @DatabaseField
     private boolean isCellShow;//小区查看还是历史记录
@@ -178,7 +178,9 @@ public class CellBeanNr {
                 ", MncString='" + MncString + '\'' +
                 ", band='" + band + '\'' +
                 ", addArfcn='" + addArfcn + '\'' +
+                ", i=" + i +
                 ", isCellShow=" + isCellShow +
+                ", lengthMax=" + lengthMax +
                 '}';
     }
 }

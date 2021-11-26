@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gij.OrmSqlLite.Bean.CellBean;
 import com.example.gij.OrmSqlLite.Bean.CellBeanGSM;
 import com.example.gij.OrmSqlLite.Bean.CellBeanNr;
-
 import com.example.mylocation.R;
 import com.example.mylocation.utils.DtUtils;
 
@@ -26,11 +25,11 @@ import java.util.List;
 import static com.example.mylocation.Constants.isCell;
 
 
-public class My4GAdapter<T> extends RecyclerView.Adapter {
+public class MyLiShiAdapter<T> extends RecyclerView.Adapter {
     private List<T> arrayList;
     private Context context;
     private int type;
-    public My4GAdapter(int type,ArrayList<T> arrayList, Context context) {
+    public MyLiShiAdapter(int type, ArrayList<T> arrayList, Context context) {
         this.arrayList = arrayList;
         this.context = context;
         this.type=type;
@@ -62,21 +61,23 @@ public class My4GAdapter<T> extends RecyclerView.Adapter {
         TextView tv_addPD = baseViewHolder.itemView.findViewById(R.id.tv_addPD);
         ImageView iv_addPD = baseViewHolder.itemView.findViewById(R.id.iv_addPD);
         if(type==5){
-            List<CellBeanNr> arrayList = (List<CellBeanNr>) this.arrayList;
+            List<ArrayList<CellBeanNr>> arrayList = (List<ArrayList<CellBeanNr>>) this.arrayList;
             if(arrayList.size()>0){
-                Log.e("测试数据", "onBindViewHolder: "+arrayList.get(position).getSsSinr() );
-                tv_band.setText(arrayList.get(position).getBand());
-                tv_ARFCN.setText(arrayList.get(position).getArfcn());
-                tv_PCI.setText(arrayList.get(position).getPci());
-                tv_RSSI.setText(arrayList.get(position).getSsSinr());
-                tv_RSRP.setText(arrayList.get(position).getRsrp());
-                tv_RSRQ.setText(arrayList.get(position).getRsrq());
-                tv_addPD.setText(arrayList.get(position).getAddArfcn());
+
+
+
+                Log.e("测试数据", "onBindViewHolder: "+arrayList.get(position).get(position).getSsSinr() );
+                tv_band.setText(arrayList.get(position).get(position).getBand());
+                tv_ARFCN.setText(arrayList.get(position).get(position).getArfcn());
+                tv_RSSI.setText(arrayList.get(position).get(position).getSsSinr());
+                tv_RSRP.setText(arrayList.get(position).get(position).getRsrp());
+                tv_RSRQ.setText(arrayList.get(position).get(position).getRsrq());
+                tv_addPD.setText(arrayList.get(position).get(position).getAddArfcn());
 
                 if(position==0){
                     tv_addPD.setVisibility(View.VISIBLE);
                     iv_addPD.setVisibility(View.GONE);
-                    tv_addPD.setText(arrayList.get(position).getAddArfcn());
+                    tv_addPD.setText(arrayList.get(position).get(position).getAddArfcn());
                 }else{
                     iv_addPD.setVisibility(View.VISIBLE);
                     iv_addPD.setImageResource(R.mipmap.add);
@@ -96,18 +97,11 @@ public class My4GAdapter<T> extends RecyclerView.Adapter {
                         });
                     }
                 });//条目的添加频点按钮
-                if(isCell){
-                    baseViewHolder.itemView.findViewById(R.id.Re_cell_item).setBackgroundResource(R.color.white );
-                }else{
-                    if(arrayList.get(position).isCellShow()){
+                    if(position%2==0){
                         baseViewHolder.itemView.findViewById(R.id.Re_cell_item).setBackgroundResource(R.color.white );
                     }else{
                         baseViewHolder.itemView.findViewById(R.id.Re_cell_item).setBackgroundResource(R.color.colorJigTextColor );
                     }
-                }
-            }
-            if("NR ARFCN".equals(arrayList.get(position).getArfcn())){
-                baseViewHolder.itemView.findViewById(R.id.Re_cell_item).setBackgroundResource(R.color.white );
             }
         }else if(type==2){
             List<CellBeanGSM> arrayList = (List<CellBeanGSM>) this.arrayList;
@@ -157,10 +151,9 @@ public class My4GAdapter<T> extends RecyclerView.Adapter {
              baseViewHolder.itemView.findViewById(R.id.Re_cell_item).setBackgroundResource(R.color.white );
          }
         }else if(type==4){
-            Log.i("ylt", "onBindViewHolder: "+arrayList.size());
             List<CellBean> arrayList = (List<CellBean>) this.arrayList;
             if(arrayList.size()>0){
-                tv_band.setText(arrayList.get(position).getBand()+"");
+                tv_band.setText(arrayList.get(position).getBand());
                 tv_ARFCN.setText(arrayList.get(position).getEarfcn());
                 tv_PCI.setText(arrayList.get(position).getPci());
                 tv_RSSI.setText(arrayList.get(position).getRssi());

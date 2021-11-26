@@ -19,9 +19,16 @@
         android:background="@color/colorBai"
         android:layout_width="match_parent"
         android:layout_height="50dp">
+        <View
+            android:id="@+id/v1"
+            android:layout_centerInParent="true"
+            android:layout_width="@dimen/x1"
+            android:layout_height="match_parent">
+        </View>
         <RelativeLayout
+            android:layout_marginRight="@dimen/x50"
             android:id="@+id/re_SimI1"
-            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@+id/v1"
             android:layout_marginLeft="30dp"
             android:layout_width="wrap_content"
             android:layout_height="50dp">
@@ -45,7 +52,8 @@
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/re_SimI2"
-            android:layout_centerInParent="true"
+            android:layout_marginLeft="@dimen/x50"
+            android:layout_toRightOf="@+id/v1"
             android:layout_width="wrap_content"
             android:layout_height="50dp">
             <TextView
@@ -67,6 +75,7 @@
             </ImageView>
         </RelativeLayout>
         <RelativeLayout
+            android:visibility="gone"
             android:id="@+id/re_Device"
             android:layout_alignParentRight="true"
             android:layout_marginRight="50dp"

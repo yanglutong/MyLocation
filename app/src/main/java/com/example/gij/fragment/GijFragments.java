@@ -42,7 +42,7 @@ import com.example.gij.OrmSqlLite.Bean.CellBeanNr;
 import com.example.gij.OrmSqlLite.manager.DBManager;
 import com.example.gij.adapter.My4GAdapter;
 import com.example.gij.linechart.Bean;
-import com.example.gij.linechart.ChartView2;
+import com.example.gij.linechart.ChartView;
 import com.example.gij.recycler.RecyclerViewNoBugLinearLayoutManager;
 import com.example.mylocation.HomeGijFragment;
 import com.example.mylocation.R;
@@ -54,26 +54,27 @@ import com.pedaily.yc.ycdialoglib.toast.ToastUtils;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static android.content.Context.TELEPHONY_SERVICE;
-import static com.example.gij.linechart.ChartView2.initChart;
-import static com.example.gij.linechart.ChartView2.list0;
-import static com.example.gij.linechart.ChartView2.list1;
-import static com.example.gij.linechart.ChartView2.list2;
+import static com.example.gij.linechart.ChartView.initChart;
+import static com.example.gij.linechart.ChartView.list0;
+import static com.example.gij.linechart.ChartView.list1;
+import static com.example.gij.linechart.ChartView.list2;
 import static com.example.mylocation.Constants.isCell;
 import static com.example.mylocation.utils.DtUtils.getBand;
 import static com.example.mylocation.utils.DtUtils.getBands;
 import static com.example.mylocation.utils.DtUtils.getGsmBand;
 
 
-public class GijFragment2 extends Fragment implements View.OnClickListener {
-    private int countMax=0;
+public class GijFragments extends Fragment implements View.OnClickListener {
+    private int lsCountMax = 0;//历史记录标记
     //定义集合 获取是卡槽1还是卡槽2
     private List<String> kaList = new ArrayList<>();
     private boolean linShowRe=true;
     private boolean isShowView=false;
-    private ArrayList<CellBeanGSM> listLiShiGsm=new ArrayList<>();//
+    private ArrayList<CellBeanGSM> listLiShiGsm=new ArrayList<>();//保存历史记录2G
     private ArrayList<CellBean> listLiShiLte=new ArrayList<>();//保存历史记录4G 1
     private ArrayList<CellBean> listLiShiLte2=new ArrayList<>();//保存历史记录4G 2
     private ArrayList<CellBeanNr> listLiShiNr=new ArrayList<>();//保存历史记录5G
@@ -82,226 +83,347 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
             if (msg.what == 1) {
-                Log.i("ylteeee", "handleMessage: ");
+                if(kaList.size()==0){
+                    kaList.add("2G");
+                }
                 if (kaList != null && kaList.size() > 0) {//有卡的数据
-                    setNullData();//每次数据都是空的
-                    Log.e("handler2", "handleMessage1: " + HomeGijFragment.getPagerPosition() + "   " + cellBeanListCurrent.size());
-                   if(HomeGijFragment.getPagerPosition()==1){//界面2
-                        if(MyUtils.readSimState(getActivity())==2){
-                                if(cellBeanListCurrent.size()>1){
-                                    if(isAdded()){
-                                        Log.e("测试数据", "界面2: 4G");
-                                        setLte2(1, cellBeanList2, 4);
-                                    }
-                                    return;
-                                }else if(cellBeanListCurrent.size()>0){
-                                    if(isAdded()){
-                                        Log.e("测试数据", " : 4G");
-                                        setLte2(0, cellBeanList2, 4);
-                                    }
-                                    return;
-                                }else if(kaList.get(kaList.size()-1).equals("5G")){//没有4G数据情况下
+                    Log.e(TAG, "handleMessage: "+kaList.toString() );
+                    Log.e("handler1", "handleMessage1: " + HomeGijFragment.getPagerPosition() + "   " + cellBeanListCurrent.size()+"------"+ MyUtils.readSimState(getActivity()));
+                    if(MyUtils.readSimState(getActivity())==1){
+                        if(HomeGijFragment.getPagerPosition()==0){
+                            if(kaList.get(0).equals("5G")){
+                                if(listNR.size()>1){
                                     if(isAdded()){
                                         setNr(5);//设置5G
-                                        Log.e("测试数据", "界面2: 5G");
+                                        Log.e("测试数据", "单卡界面: 5G");
                                     }
-                                    return;
-                                }else if(kaList.get(kaList.size()-1).equals("2G")){
+                                }
+                            }
+                            else if(kaList.get(0).equals("4G")){
+                                if(cellBeanListCurrent.size()>0){
+                                    if(isAdded()){
+                                        Log.e("测试数据", "单卡界面: 4G");
+                                        setLte2(0, cellBeanList, 4);
+                                    }
+                                }
+                            } else if(!TextUtils.isEmpty(kaList.get(0))&&kaList.get(0).equals("2G")){
+                                if(listGsm.size()>1){
                                     if(isAdded()){
                                         setGsm(2);
-                                        Log.e("测试数据", "界面2: 2G");
+                                        Log.e("测试数据", "单卡界面: 2G");
                                     }
-                                    return;
-                                }else{
-                                    setNullData();
                                 }
+                            }else {
+                                setNullData();
+                            }
+                        }else if(HomeGijFragment.getPagerPosition()==1){
                         }
+
+                    }else if(MyUtils.readSimState(getActivity())==2){
+                        if(HomeGijFragment.getPagerPosition()==0){
+                            if(kaList.get(0).equals("5G")){
+                                if(listNR.size()>1){
+                                    if(isAdded()){
+                                        setNr(5);//设置5G
+                                        Log.e("测试数据", "单卡界面: 5G");
+                                    }
+                                }
+                            }
+                            else if(kaList.get(0).equals("4G")){
+                                if(cellBeanListCurrent.size()>0){
+                                    if(isAdded()){
+                                        Log.e("测试数据", "单卡界面: 4G");
+                                        setLte2(0, cellBeanList, 4);
+                                    }
+                                }
+                            } else if(kaList.get(0).equals("2G")){
+                                if(listGsm.size()>1){
+                                    if(isAdded()){
+                                        setGsm(2);
+                                        Log.e("测试数据", "单卡界面: 2G");
+                                    }
+                                }
+                            }else {
+                                setNullData();
+                            }
+                        }else {
+                            setNullData();
+                        }
+
+                    }else {
+                        setNullData();
                     }
                 }else{
-                    setNullData();//每次都先值为空
+                    setNullData();
                 }
             }
         }
     };
+
     private LinearLayout liner_rsSi,Linear_RSRP,Linear_SINR,Linear_RSRQ;
     private int RssiStat=0;
     private RelativeLayout xinhaoVisible;
     private LinearLayout xinhaoVisible2;
     private TextView tv_rssi,tv_RSRQ,tv_RSRP,tv_SINR,RSSP,RSSQ,RSSI;
     private ImageView iv_xinhao;
-    private LineChart ChartView;
+    private LineChart chartView;
     private Context context;
 
     private void setLiShi(int type,int i){
-        if(type==5){
-            if(listLiShiNr.size()>1){
-                Collections.reverse(listLiShiNr);
-                for (int i1 = 0; i1 < listLiShiNr.size(); i1++) {
-                    if(i1>=49){
-                        listLiShiNr.remove(i1);
-                    }
-                }
-                adapter = new My4GAdapter(5, listLiShiNr, getActivity());
-            }else{
-                adapter = new My4GAdapter(4, listItem, getActivity());
-            }
-        }
-        if(type==4){
-            if(i==0){
-                if(listLiShiLte.size()>1){
-                    Collections.reverse(listLiShiLte);
-                    for (int i1 = 0; i1 < listLiShiLte.size(); i1++) {
-                        if(i1>=49){
-                            listLiShiLte.remove(i1);
-                        }
-                    }
-                    adapter = new My4GAdapter(4, listLiShiLte, getActivity());
-                    recycler.setAdapter(adapter);
-                    adapter.notifyDataSetChanged();
-                }else{
-                    adapter = new My4GAdapter(4, listItem, getActivity());
-                    recycler.setAdapter(adapter);
-                }
-            }
-
-            if(i==1){
-                if(listLiShiLte2.size()>1){
-                    Collections.reverse(listLiShiLte2);
-                    for (int i1 = 0; i1 < listLiShiLte2.size(); i1++) {
-                        if(i1>=49){
-                            listLiShiLte2.remove(i1);
-                        }
-                    }
-                    adapter = new My4GAdapter(4, listLiShiLte2, getActivity());
-                }else{
-                    adapter = new My4GAdapter(4, listItem, getActivity());
-                }
-            }
-
-        }
         if(type==2){
-            if(listLiShiGsm.size()>1){
-                Collections.reverse(listLiShiGsm);
-                for (int i1 = 0; i1 < listLiShiGsm.size(); i1++) {
-                    if(i1>=49){
-                        listLiShiGsm.remove(i1);
-                    }
-                }
-                adapter = new My4GAdapter(2, listLiShiGsm, getActivity());
-            }else{
-                adapter = new My4GAdapter(4, listItem, getActivity());
+            adapter = new My4GAdapter(type, listLiShiGsm, getActivity());
+        }else if(type==5){
+            adapter = new My4GAdapter(type, listLiShiNr, getActivity());
+        }else if(type==4){
+            if(i==0){
+                adapter = new My4GAdapter(type, listLiShiLte, getActivity());
+            }else if(i==1){
+                adapter = new My4GAdapter(type, listLiShiLte2, getActivity());
+
             }
         }
         recycler.setAdapter(adapter);
         adapter.notifyDataSetChanged();
-    }
-    private void setLiShiData() {
-        if (countMax <= 4) {
-            if (listGsm.size() > 1) {//2G
-                for (int i = 0; i < listGsm.size(); i++) {
-                    if (countMax % 2 == 0) {
-                        CellBeanGSM gsm = listGsm.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellShow(true);
-                        listLiShiGsm.add(gsm);
-                    } else {
-                        CellBeanGSM gsm = listGsm.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellShow(false);
-                        listLiShiGsm.add(gsm);
-                    }
-                }
-            }
-            if(listNR.size()>1){//5G
-                for (int i = 0; i < listNR.size(); i++) {
-                    if (countMax % 2 == 0) {
-                        CellBeanNr gsm = listNR.get(i);
-
-                        gsm.setI(countMax);
-
-                        gsm.setCellShow(true);
-                        listLiShiNr.add(gsm);
-                    } else {
-                        CellBeanNr gsm = listNR.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellShow(false);
-                        listLiShiNr.add(gsm);
-                    }
-                }
-            }
-
-            if(cellBeanList.size()>1){//4G
-                for (int i = 0; i < cellBeanList.size(); i++) {
-                    if (countMax % 2 == 0) {
-                        CellBean gsm = cellBeanList.get(i);
-                        gsm.setI(countMax);
-
-                        gsm.setCellLiShi(true);
-                        listLiShiLte.add(gsm);
-                    } else {
-                        CellBean gsm = cellBeanList.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellLiShi(false);
-                        listLiShiLte.add(gsm);
-                    }
-                }
-                if (listLiShiLte.size() > 0) {
-                    for (int i = 0; i < listLiShiLte.size(); i++) {
-                        CellBean beanGSM = listLiShiLte.get(i);
-                        if (beanGSM.getBand().equals("BAND")) {
-                            listLiShiLte.remove(i);
-                        }
-                    }
-                }
-            }
-
-            if(cellBeanList2.size()>1){//4G
-                for (int i = 0; i < cellBeanList2.size(); i++) {
-                    if (countMax % 2 == 0) {
-                        CellBean gsm = cellBeanList2.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellLiShi(true);
-                        listLiShiLte2.add(gsm);
-                    } else {
-                        CellBean gsm = cellBeanList2.get(i);
-                        gsm.setI(countMax);
-                        gsm.setCellLiShi(false);
-                        listLiShiLte2.add(gsm);
-                    }
-                }
-                if (listLiShiLte2.size() > 0) {
-                    for (int i = 0; i < listLiShiLte2.size(); i++) {
-                        CellBean beanGSM = listLiShiLte2.get(i);
-                        if (beanGSM.getBand().equals("BAND")) {
-                            listLiShiLte2.remove(i);
-                        }
-                    }
-                }
-            }
-            countMax++;
-        } else {
-            countMax = 0;
-        }
     }
 
     private Runnable runnable = new Runnable() {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
         @Override
         public void run() {
-
-                Log.e("Mr.Y2", "run22222: =--------------------------------4G集合长度"+cellBeanListCurrent.size());
-                //每次都先清除集合
-                Clear();
-                //获取4G数据
-                getDemo();
-                Message message = Message.obtain();
-                message.obj=kaList;
-                message.what = 1;
-                handler.sendMessage(message);
-                Log.e("kalist", "kalist: "+kaList.toString());
-                handler.postDelayed(this, 2000);
+            Log.e("Mr.Y2", "run22222: =--------------------------------4G集合长度"+cellBeanListCurrent.size());
+            //每次都先清除集合
+            Clear();
+            //获取4G数据
+            getDemo();
+            setLiShiData();//只要有数据历史记录就会被一直初始化
+            Message message = Message.obtain();
+            message.obj=kaList;
+            message.what = 1;
+            handler.sendMessage(message);
+            Log.e("kalist", "kalist: "+kaList.toString());
+            handler.postDelayed(this, 2000);
         }
     };
+    private int countMax=1;
+    private void setLiShiData() {//排序 将5次加进去以后 把当前第一条的i字段读取到 和集合中的进行匹配 有的话删除
+        if(countMax <= 5){
+            /*4G*/
+            //如果卡1邻小区有数据 就将数据保存到邻小区集合里
+            if(cellBeanList.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < cellBeanList.size(); i++) {
+                        CellBean gsm = cellBeanList.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(true);
+                        listLiShiLte.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < cellBeanList.size(); i++) {
+                        CellBean gsm = cellBeanList.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(false);
+                        listLiShiLte.add(gsm);
+                    }
+                }
+            }
+            //如果卡1邻小区有数据 就将数据保存到邻小区集合里
+            if(cellBeanList2.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < cellBeanList2.size(); i++) {
+                        CellBean gsm = cellBeanList2.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(true);
+                        listLiShiLte2.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < cellBeanList2.size(); i++) {
+                        CellBean gsm = cellBeanList2.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(false);
+                        listLiShiLte2.add(gsm);
+                    }
+                }
+            }
+            /*4G*/
+
+
+            /*5G*/
+            if(listNR.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < listNR.size(); i++) {
+                        CellBeanNr gsm = listNR.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(true);
+                        listLiShiNr.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < listNR.size(); i++) {
+                        CellBeanNr gsm = listNR.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(false);
+                        listLiShiNr.add(gsm);
+                    }
+                }
+            }
+            /*5G*/
+
+            /*2G*/
+            if(listGsm.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < listGsm.size(); i++) {
+                        CellBeanGSM gsm = listGsm.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(true);
+                        listLiShiGsm.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < listGsm.size(); i++) {
+                        CellBeanGSM gsm = listGsm.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(false);
+                        listLiShiGsm.add(gsm);
+                    }
+                }
+            }
+            /*2G*/
+        }else{
+            /*4G*/
+            if(listLiShiLte2.size()>1){//历史记录有的话删除最后次数的数据
+                //删除最后一条的数据
+                int i = listLiShiLte2.get(1).getI();
+                Iterator<CellBean> iterator = listLiShiLte2.iterator();//使用迭代删除
+                while(iterator.hasNext()){
+                    int i1 = iterator.next().getI();
+                    if(i1==i){
+                        iterator.remove();
+                    }
+                }
+            }
+            if(listLiShiLte.size()>1){//历史记录有的话删除最后次数的数据
+                //删除最后一条的数据
+                int i = listLiShiLte.get(1).getI();
+                Iterator<CellBean> iterator = listLiShiLte.iterator();//使用迭代删除
+                while(iterator.hasNext()){
+                    int i1 = iterator.next().getI();
+                    if(i1==i){
+                        iterator.remove();
+                    }
+                }
+            }
+
+            //添加最新的数据
+            if(cellBeanList2.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i1 = 1; i1 < cellBeanList2.size(); i1++) {
+                        CellBean gsm = cellBeanList2.get(i1);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(true);
+                        listLiShiLte2.add(gsm);
+                    }
+                }else {
+                    for (int i1 = 1; i1 < cellBeanList2.size(); i1++) {
+                        CellBean gsm = cellBeanList2.get(i1);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(false);
+                        listLiShiLte2.add(gsm);
+                    }
+                }
+            }
+
+            //添加最新的数据
+            if(cellBeanList.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i1 = 1; i1 < cellBeanList.size(); i1++) {
+                        CellBean gsm = cellBeanList.get(i1);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(true);
+                        listLiShiLte.add(gsm);
+                    }
+                }else {
+                    for (int i1 = 1; i1 < cellBeanList.size(); i1++) {
+                        CellBean gsm = cellBeanList.get(i1);
+                        gsm.setI(countMax);
+                        gsm.setCellLiShi(false);
+                        listLiShiLte.add(gsm);
+                    }
+                }
+            }
+            /*4G*/
+
+
+            /*5G*/
+            if(listLiShiNr.size()>1){//历史记录有的话删除最后次数的数据
+                //删除最后一条的数据
+                int i = listLiShiNr.get(1).getI();
+                Iterator<CellBeanNr> iterator = listLiShiNr.iterator();//使用迭代删除
+                while(iterator.hasNext()){
+                    int i1 = iterator.next().getI();
+                    if(i1==i){
+                        iterator.remove();
+                    }
+                }
+            }
+
+            if(listNR.size()>1){//4G
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < listNR.size(); i++) {
+                        CellBeanNr gsm = listNR.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(true);
+                        listLiShiNr.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < listNR.size(); i++) {
+                        CellBeanNr gsm = listNR.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(false);
+                        listLiShiNr.add(gsm);
+                    }
+                }
+            }
+            /*5G*/
+
+
+
+
+
+
+            /*2G*/
+            if(listLiShiGsm.size()>1){//历史记录有的话删除最后次数的数据
+                //删除最后一条的数据
+                int i = listLiShiGsm.get(1).getI();
+                Iterator<CellBeanGSM> iterator = listLiShiGsm.iterator();//使用迭代删除
+                while(iterator.hasNext()){
+                    int i1 = iterator.next().getI();
+                    if(i1==i){
+                        iterator.remove();
+                    }
+                }
+            }
+
+
+
+            if(listGsm.size()>1){
+                if (countMax % 2 == 0) {
+                    for (int i = 1; i < listGsm.size(); i++) {
+                        CellBeanGSM gsm = listGsm.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(true);
+                        listLiShiGsm.add(gsm);
+                    }
+                }else {
+                    for (int i = 1; i < listGsm.size(); i++) {
+                        CellBeanGSM gsm = listGsm.get(i);
+                        gsm.setI(countMax);
+                        gsm.setCellShow(false);
+                        listLiShiGsm.add(gsm);
+                    }
+                }
+            }
+            /*2G*/
+        }
+        countMax++;
+    }
 
     private void setGsm(int type) {
         if(listGsm.size()>1){
@@ -313,7 +435,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tvKey_arfcn.setText("ARFCN");
             tvKey_band.setText("BAND");
             if(listGsm.get(1).getMncString()!=null){
-                if(listGsm.get(1).getMncString().equals("00")||listGsm.get(1).getMncString().equals("02")){
+                if(listGsm.get(1).getMncString().equals("00")){
                     tv_plmn.setText("460"+listGsm.get(1).getMncString()+"(中国移动)");
                 }else if(listGsm.get(1).getMncString().equals("11")){
                     tv_plmn.setText("460"+listGsm.get(1).getMncString()+"(中国电信)");
@@ -323,6 +445,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                     tv_plmn.setText("46000(中国移动)");
                 }
             }
+
             tv_tac.setText(listGsm.get(1).getLac());
             tv_eci.setText(listGsm.get(1).getCid());
             tv_pci.setText(listGsm.get(1).getBsic());
@@ -353,6 +476,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
     }
 
     private void setLte2(int i, ArrayList<CellBean> cellBeanList,int type) {//i 代表当前为第i个界面小区的数据
+        Log.e("123456", "setLte2: "+cellBeanList.size() );
         if(cellBeanListCurrent.size()>i){//设置页面的服务小区和信号强度
             //将服务小区的状态改变
             tvKey_pci.setText("PCI");
@@ -363,7 +487,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tvLTE_LTE.setText("LTE");
 
 
-            if (cellBeanListCurrent.get(i).getPlmn().equals("46000")||cellBeanListCurrent.get(i).getPlmn().equals("46002")) {
+            if (cellBeanListCurrent.get(i).getPlmn().equals("46000")) {
                 tv_plmn.setText(cellBeanListCurrent.get(i).getPlmn() + "(中国移动)");
             } else if (cellBeanListCurrent.get(i).getPlmn().equals("46011")) {
                 tv_plmn.setText(cellBeanListCurrent.get(i).getPlmn() + "(中国电信)");
@@ -414,12 +538,15 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             Linear_RSRP.setVisibility(View.VISIBLE);
             Linear_RSRQ.setVisibility(View.VISIBLE);
 
+
+
             //如果手机版本号小的就隐藏布局
             if(cellBeanListCurrent.get(i).getRssi().equals("0")){
                 liner_rsSi.setVisibility(View.GONE);
             }else{
                 liner_rsSi.setVisibility(View.VISIBLE);
             }
+
 
             RSSI.setText("RSSI");
             RSSP.setText("RSRP");
@@ -448,7 +575,6 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
 
     private void setLteQx(int i) {
         initChart(context);
-
         if(cellBeanListCurrent.get(i).getRssi().equals("0")){
 //            if(RssiStat==1){
             RSSP.setTextColor(getResources().getColor(R.color.color_3853e8));
@@ -458,12 +584,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_rssi.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = -30;
-            ChartView2.num_min = -120;
-            list1.remove(0);
-            list1.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrp())));
-            if (list1 != null && list1.size() > 0) {
-                ChartView2.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
+            ChartView.num_max = -30;
+            ChartView.num_min = -120;
+            ChartView.list1.remove(0);
+            ChartView.list1.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrp())));
+            if (ChartView.list1 != null && ChartView.list1.size() > 0) {
+                ChartView.showLineChart(ChartView.list1, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
             if(RssiStat==2){
                 //设置选中的曲线按钮
@@ -474,19 +600,18 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
                 tv_rssi .setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-                ChartView2.num_max = -1;
-                ChartView2.num_min = -20;
-                initChart(context);
-                list2.remove(0);
-                list2.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrq())));
-                if (list2 != null && list2.size() > 0) {
-                    ChartView2.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.num_max = -1;
+                ChartView.num_min = -20;
+                ChartView.initChart(context);
+                ChartView.list2.remove(0);
+                ChartView.list2.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrq())));
+                if (ChartView.list2 != null && ChartView.list2.size() > 0) {
+                    ChartView.showLineChart(ChartView.list2, "日期", context.getResources().getColor(R.color.color_3853e8));
                 }
             }else{
 
             }
         }else{
-
             if(RssiStat==0){
                 //设置选中的曲线按钮
                 RSSI.setTextColor(getResources().getColor(R.color.color_3853e8));
@@ -496,13 +621,13 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
                 tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-                ChartView2.num_max = -30;
-                ChartView2.num_min = -120;
-                list0.remove(0);
-                list0.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRssi())));
-                Log.e("TAGGGG", "setLte: "+list0.size());
-                if (list0 != null && list0.size() > 0) {
-                    ChartView2.showLineChart(list0, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.num_max = -30;
+                ChartView.num_min = -120;
+                ChartView.list0.remove(0);
+                ChartView.list0.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRssi())));
+                Log.e("TAGGGG", "setLte: "+ ChartView.list0.size());
+                if (ChartView.list0 != null && ChartView.list0.size() > 0) {
+                    ChartView.showLineChart(ChartView.list0, "日期", context.getResources().getColor(R.color.color_3853e8));
                 }
             }else if(RssiStat==1){
                 RSSP.setTextColor(getResources().getColor(R.color.color_3853e8));
@@ -512,12 +637,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 tv_rssi.setTextColor(getResources().getColor(R.color.colorJigBlack));
                 tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-                ChartView2.num_max = -30;
-                ChartView2.num_min = -120;
-                list1.remove(0);
-                list1.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrp())));
-                if (list1 != null && list1.size() > 0) {
-                    ChartView2.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.num_max = -30;
+                ChartView.num_min = -120;
+                ChartView.list1.remove(0);
+                ChartView.list1.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrp())));
+                if (ChartView.list1 != null && ChartView.list1.size() > 0) {
+                    ChartView.showLineChart(ChartView.list1, "日期", context.getResources().getColor(R.color.color_3853e8));
                 }
             }else if(RssiStat==2){
                 //设置选中的曲线按钮
@@ -528,17 +653,16 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
                 tv_rssi .setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-                ChartView2.num_max = -1;
-                ChartView2.num_min = -20;
-                initChart(context);
-                list2.remove(0);
-                list2.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrq())));
-                if (list2 != null && list2.size() > 0) {
-                    ChartView2.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.num_max = -1;
+                ChartView.num_min = -20;
+                ChartView.initChart(context);
+                ChartView.list2.remove(0);
+                ChartView.list2.add(new Bean("",Float.parseFloat(cellBeanListCurrent.get(i).getRsrq())));
+                if (ChartView.list2 != null && ChartView.list2.size() > 0) {
+                    ChartView.showLineChart(ChartView.list2, "日期", context.getResources().getColor(R.color.color_3853e8));
                 }
             }
         }
-
     }
 
     private void setNr(int type) {
@@ -550,16 +674,19 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tvKey_tac.setText("NR_TAC");
             tvKey_band.setText("NR_BAND");
             tvLTE_LTE.setText("NR");
+            Log.i("yltNR", "setNr: "+listNR.get(1).getMncString());
             if(listNR.get(1).getMncString()!=null){
-                if (listNR.get(1).getMncString().equals("00")||listNR.get(1).getMncString().equals("02")) {
-                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国移动)");
-                } else if (listNR.get(1).getMncString().equals("11")) {
-                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国电信)");
-                } else if (listNR.get(1).getMncString().equals("01")) {
-                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国联通)");
-                } else {
-                    tv_plmn.setText("460"+listNR.get(1).getMncString());
-                }
+//                if (listNR.get(1).getMncString().equals("00")) {
+//                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国移动)");
+//                } else if (listNR.get(1).getMncString().equals("11")) {
+//                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国电信)");
+//                } else if (listNR.get(1).getMncString().equals("01")) {
+//                    tv_plmn.setText("460"+listNR.get(1).getMncString() + "(中国联通)");
+//                } else {
+                tv_plmn.setText(listNR.get(1).getMncString());
+//                }
+            }else{
+                tv_plmn.setText("");
             }
             tv_tac.setText(listNR.get(1).getTac());
             tv_eci.setText(listNR.get(1).getCid());
@@ -578,6 +705,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
 
             if(!isCell){//历史记录
                 setLiShi(type,0);
+
             }else
             if(listNR.size()>1){//删除当前小区
                 listNR.remove(1);
@@ -619,12 +747,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
 
-            ChartView2.num_max = -30;
-            ChartView2.num_min = -160;
+            ChartView.num_max = -30;
+            ChartView.num_min = -160;
             list0.remove(0);
             list0.add(new Bean("",Float.parseFloat(listNR.get(1).getRsrp())));
             if (list0 != null && list0.size() > 0) {
-                ChartView2.showLineChart(list0, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list0, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }else if(RssiStat==1){//rsrq
 
@@ -635,12 +763,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_rssi.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = -10;
-            ChartView2.num_min = -60;
+            ChartView.num_max = -10;
+            ChartView.num_min = -60;
             list1.remove(0);
             list1.add(new Bean("",Float.parseFloat(listNR.get(1).getRsrq())));
             if (list1 != null && list1.size() > 0) {
-                ChartView2.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }else if(RssiStat==2){//sinr
             //设置选中的曲线按钮
@@ -651,13 +779,13 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_rssi .setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = 0;
-            ChartView2.num_min = -30;
+            ChartView.num_max = 0;
+            ChartView.num_min = -30;
             initChart(context);
             list2.remove(0);
             list2.add(new Bean("",Float.parseFloat(listNR.get(1).getSsSinr())));
             if (list2 != null && list2.size() > 0) {
-                ChartView2.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }
     }
@@ -684,12 +812,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = -60;
-            ChartView2.num_min = -120;
+            ChartView.num_max = -60;
+            ChartView.num_min = -120;
             list0.remove(0);
             list0.add(new Bean("",Float.parseFloat(listGsm.get(1).getDbmRXL())));
             if (list0 != null && list0.size() > 0) {
-                ChartView2.showLineChart(list0, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list0, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }else if(RssiStat==1){//rsrq
             RSSP.setTextColor(getResources().getColor(R.color.color_3853e8));
@@ -699,12 +827,12 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_rssi.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_RSRQ.setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = -90;
-            ChartView2.num_min = -110;
+            ChartView.num_max = -90;
+            ChartView.num_min = -110;
             list1.remove(0);
             list1.add(new Bean("",0));
             if (list1 != null && list1.size() > 0) {
-                ChartView2.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list1, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }else if(RssiStat==2){//sinr
             //设置选中的曲线按钮
@@ -715,13 +843,13 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             tv_RSRP.setTextColor(getResources().getColor(R.color.colorJigBlack));
             tv_rssi .setTextColor(getResources().getColor(R.color.colorJigBlack));
 
-            ChartView2.num_max = -90;
-            ChartView2.num_min = -110;
+            ChartView.num_max = -90;
+            ChartView.num_min = -110;
             initChart(context);
             list2.remove(0);
             list2.add(new Bean("",0));
             if (list2 != null && list2.size() > 0) {
-                ChartView2.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
+                ChartView.showLineChart(list2, "日期", context.getResources().getColor(R.color.color_3853e8));
             }
         }
     }
@@ -769,11 +897,11 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             }
 
 //            //曲线图设置为空
-//            ChartView2.num_max = -90;
-//            ChartView2.num_min = -110;
-//            ChartView2.initChart(context);
-//            if (list11 != null && list11.size() > 0) {
-//                ChartView2.showLineChart(list11, "日期", context.getResources().getColor(R.color.color_3853e8));
+//            ChartView.num_max = -90;
+//            ChartView.num_min = -110;
+//            initChart(context);
+//            if (list00 != null && list00.size() > 0) {
+//                ChartView.showLineChart(list00, "日期", context.getResources().getColor(R.color.color_3853e8));
 //            }
         }
     }
@@ -807,23 +935,15 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
     private LinearLayout recyclerLayout;
     private int band;
     private TextView tvKey_arfcn,tvKey_band,tvKey_ci,tvKey_tac,tvKey_pci;
-    public GijFragment2() {
-    }
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.e("Mr.Y333", "onCreate: ");
+    public GijFragments() {
     }
     View view;
     TextView tv_plmn, tv_tac, tv_pci, tv_eci, tv_EARFCN, tv_BAND,tvLTE_LTE,tv_linXq,tv_liShi,tv_addEarFcn;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.e("Mr.Y333", "onCreateView: " );
-
-
         // Inflate the layout for this fragment
-        View  view = inflater.inflate(R.layout.fragment_blank2, container, false);
+        view = inflater.inflate(R.layout.fragment_blank2, container, false);
         context = getActivity();
         isShowView=true;//界面已经加载
         initData(view);
@@ -832,9 +952,8 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
 
     private void initData(View view) {
         findView(view);//查找控件
-
         //初始化曲线图
-        ChartView2.initData(ChartView,getActivity(),view);
+        ChartView.initData(chartView,getActivity(),view);
         //邻小区历史记录点击事件
         setOnClick();
         //初始化邻小区
@@ -852,13 +971,6 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
         cellBeanList.add(new CellBean());
         cellBeanList2.add(new CellBean());
         /*4G 卡*/
-
-
-
-        /*历史记录*/
-//        listLiShi.clear();
-//        listLiShi.add(new CellBeanGSM());
-        /*历史记录*/
 
 
         /*区分2 4 5G标识*/
@@ -954,52 +1066,8 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                                 lteRsrq +"",  "添加频点", true));
                     }
                 }
-            }else if(info.toString().contains("CellInfoNr")){
-                kaList.add("5G");
-                //获取5G数据管理
-                @SuppressLint({"NewApi", "LocalSuppress"})
-                CellIdentityNr nr = (CellIdentityNr) ((CellInfoNr) info).getCellIdentity();
-                @SuppressLint({"NewApi", "LocalSuppress"})
-                CellSignalStrengthNr nrStrength = (CellSignalStrengthNr) ((CellInfoNr) info)
-                        .getCellSignalStrength();
-                CellBeanNr bean = new CellBeanNr();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setMncString(nr.getMncString());
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setTac(nr.getTac()+"");
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setPci(nr.getPci()+"");
-                }
-                long ci = 0;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    ci = nr.getNci();
-                }
-                String cid = String.valueOf(ci);
-                bean.setCid(cid);
-                int nrarfcn = 0;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    nrarfcn=nr.getNrarfcn();
-                    bean.setArfcn(nr.getNrarfcn()+"");
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setRsrp("-"+nrStrength.getSsRsrp()+"");
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setRsrq("-"+nrStrength.getSsRsrq()+"");
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    bean.setSsSinr(nrStrength.getSsSinr()+"");
-                }
-                Log.e("TAGNR", "getDemo: "+nrarfcn );
-
-                int band = DtUtils.rangeInDefinedS(nrarfcn);
-                Log.e("TAGNR", "getDemo: "+band );
-                bean.setBand(band+"");
-                listNR.add(bean);
             }else if(info instanceof CellInfoGsm){
-                kaList.add("2G");
+//                kaList.add("2G");
                 CellInfoGsm infoGsm = (CellInfoGsm) info;
                 CellSignalStrengthGsm strength = infoGsm.getCellSignalStrength();
                 CellIdentityGsm gsm = infoGsm.getCellIdentity();
@@ -1028,6 +1096,54 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 Log.i("ylt2G", "getMncString: "+gsm.getMncString());
                 listGsm.add(gsm1);
 
+
+
+            }else if(info.toString().contains("CellInfoNr")){
+                kaList.add("5G");
+                //获取5G数据管理
+                @SuppressLint({"NewApi", "LocalSuppress"})
+                CellIdentityNr nr = (CellIdentityNr) ((CellInfoNr) info).getCellIdentity();
+                @SuppressLint({"NewApi", "LocalSuppress"})
+                CellSignalStrengthNr nrStrength = (CellSignalStrengthNr) ((CellInfoNr) info)
+                        .getCellSignalStrength();
+                CellBeanNr bean = new CellBeanNr();
+                Log.e(TAG, "getDemo: "+nr.getOperatorAlphaLong());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    Log.e("TAGFFFF", "getDemo: "+nr.getMncString());
+                    bean.setMncString(nr.getMncString());
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    bean.setTac(nr.getTac()+"");
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    bean.setPci(nr.getPci()+"");
+                }
+                long ci = 0;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ci = nr.getNci();
+                }
+                String cid = String.valueOf(ci);
+                bean.setCid(cid);
+                int nrarfcn = 0;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    nrarfcn=nr.getNrarfcn();
+                    bean.setArfcn(nr.getNrarfcn()+"");
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    bean.setRsrp(nrStrength.getSsRsrp()+"");
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    bean.setRsrq(nrStrength.getSsRsrq()+"");
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    bean.setSsSinr(nrStrength.getSsSinr()+"");
+                }
+                Log.e("TAGNR", "getDemo: "+nrarfcn );
+
+                int band = DtUtils.rangeInDefinedS(nrarfcn);
+                Log.e("TAGNR", "getDemo: "+band );
+                bean.setBand(band+"");
+                listNR.add(bean);
             }
         }
     }
@@ -1065,11 +1181,13 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
         listLiShiLte.clear();
         listLiShiLte2.clear();
 
+        listLiShiLte.add(new CellBean());
+        listLiShiLte2.add(new CellBean());
+        listLiShiNr.add(new CellBeanNr());
+        listLiShiGsm.add(new CellBeanGSM());
+
         listItem.add(new CellBean());
-//        listLiShiGsm.add(new CellBeanGSM());//2G历史记录
-//        listLiShiNr.add(new CellBeanNr());//5G历史记录
-//        listLiShiLte.add(new CellBean());//4G历史记录
-//        listLiShiLte2.add(new CellBean());//4G历史记录2
+
         manager = new RecyclerViewNoBugLinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
         recycler.setLayoutManager(manager);//设置Recycler不能滑动
         adapter = new My4GAdapter(4,listItem, getActivity());
@@ -1119,7 +1237,7 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
         xinhaoVisible2 = view.findViewById(R.id.xinhaoVisible2);
 
         //曲线图控件
-        ChartView = view.findViewById(R.id.chartview);
+        chartView = view.findViewById(R.id.chartview);
     }
 
 
@@ -1237,7 +1355,6 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
             case R.id.iv_xinhao://信号强度
                 if(xinhaoVisible.getVisibility()==0){//显示
                     iv_xinhao.setImageResource(R.mipmap.sjiaoup);
-
                     xinhaoVisible.setVisibility(View.GONE);
                     xinhaoVisible2.setVisibility(View.GONE);
                 }else{
@@ -1247,11 +1364,6 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
                 }
                 break;
         }
-    }
-    @Override
-    public void onDestroyView() {
-        Log.e("Mr.Y333", "onDestroyView: " );
-        super.onDestroyView();
     }
 
     @Override
@@ -1264,46 +1376,11 @@ public class GijFragment2 extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        Log.e("Mr.Y333", "onStart: " );
-
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
         if(handler!=null){
             handler.removeCallbacks(runnable);
         }
         Log.e("Mr.Y333", "onPause: " );
-    }
-
-    @Override
-    public void onStop() {        Log.e("Mr.Y333", "onStop: " );
-
-        super.onStop();
-    }
-
-    @Override
-    public void onDestroy() {        Log.e("Mr.Y333", "onDestroy: " );
-
-        super.onDestroy();
-    }
-
-    @Override
-    public void onDetach() {        Log.e("Mr.Y333", "onDetach: " );
-        super.onDetach();
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        Log.e("Mr.Y333", "onAttach:" );
-        super.onAttach(context);
-    }
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        Log.e("Mr.Y333", "onViewCreated: " );
     }
 }

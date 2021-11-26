@@ -8,6 +8,7 @@ package com.example.mylocation.OrmSqlLite;
 import android.content.Context;
 
 import com.example.mylocation.OrmSqlLite.Bean.GuijiViewBean;
+import com.example.mylocation.OrmSqlLite.Bean.GuijiViewBeanjizhan;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -99,6 +100,7 @@ public class DBManagerGuijiView {
         List<GuijiViewBean> query = queryBuilder.query();//此方法相当于build，提交设置
         return query;
     }
+
     /**
      * 查询下旬频点对应的数据
      * @param s

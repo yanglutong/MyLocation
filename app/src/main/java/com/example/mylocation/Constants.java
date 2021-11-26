@@ -5,8 +5,8 @@ package com.example.mylocation;
  * @date: 2021/9/23
  */
 public class Constants {
-    public static boolean MAXTA = false;//最大ta圈
-    public static boolean MINTA = false;//最小ta圈
+    public static boolean MAXTA = true;//最大ta圈
+    public static boolean MINTA = true;//最小ta圈
     public static boolean UNIFORMTA = true;//平均圈
     public static boolean FIRSTTYPE = false;//判断是否刚进入界面判断
 
@@ -29,5 +29,5 @@ public class Constants {
     public static String BASE_URL_IMAGE  = BASE_URL+"/img";
 
     public static boolean isCell=true;//是邻小区或历史记录
-    public static boolean isRuing=true;//是邻小区或历史记录
+    public static int page=0;//手机页面
 }

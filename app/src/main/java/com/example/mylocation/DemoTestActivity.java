@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import java.util.ArrayList;
+
 public class DemoTestActivity extends AppCompatActivity {
 
     @Override
@@ -16,7 +18,8 @@ public class DemoTestActivity extends AppCompatActivity {
         gj.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+//                ArrayList arraylist = new ArrayList();
+                //JDK
             }
         });
     }
